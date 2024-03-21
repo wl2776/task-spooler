@@ -20,7 +20,7 @@ if (GIT_REPO)
 endif()
 
 
-set(target ts)
+set(target tsp)
 
 set(TASK_SPOOLER_SOURCES
         client.c
