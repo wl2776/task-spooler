@@ -1174,6 +1174,9 @@ void s_job_info(int s, int jobid) {
     }
     write(s, p->command, strlen(p->command));
     fd_nprintf(s, 100, "\n");
+    if (p->label) {
+        fd_nprintf(s, 100, "Label: %s\n", p->label);
+    }
     fd_nprintf(s, 100, "Slots required: %i\n", p->num_slots);
 #ifndef CPU
     fd_nprintf(s, 100, "GPUs required: %d\n", p->num_gpus);
