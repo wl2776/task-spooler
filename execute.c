@@ -136,6 +136,13 @@ static void run_gzip(int fd_out, int fd_in) {
     }
 }
 
+static void put_job_id_env() {
+    const int jobid_len = 18;
+    char ts_jobid[jobid_len];
+    snprintf(ts_jobid, jobid_len, "TS_JOBID=%d", command_line.jobid);
+    putenv(ts_jobid);
+}
+
 static void run_child(int fd_send_filename, char* tmpdir) {
     char *outfname;
     char errfname[sizeof outfname + 2]; /* .e */
@@ -233,6 +240,7 @@ static void run_child(int fd_send_filename, char* tmpdir) {
          kill -- -`ts -p` */
     setsid();
     putenv("PYTHONUNBUFFERED=1");
+    put_job_id_env();   /* let child process know that it has been run from us */
     execvp(command_line.command.array[0], command_line.command.array);
 }
 
