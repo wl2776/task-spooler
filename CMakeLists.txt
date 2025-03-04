@@ -4,6 +4,7 @@ project(Task-Spooler C)
 set(CMAKE_C_STANDARD 11)
 
 option(TASK_SPOOLER_COMPILE_CUDA "Compile CUDA support (NVML)" ON)
+option(TASK_SPOOLER_DEBUG_DUMP "Add calls to msgdump" OFF)
 
 # VERSIONING
 execute_process(
@@ -49,6 +50,10 @@ add_executable(
    main.c
    ${TASK_SPOOLER_SOURCES}
 )
+
+if (TASK_SPOOLER_DEBUG_DUMP)
+    target_compile_definitions(${target} PRIVATE MSG_DUMP)
+endif()
 
 add_executable(makeman man.c)
 

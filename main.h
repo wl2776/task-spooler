@@ -55,7 +55,8 @@ enum MsgTypes {
     SET_FREE_PERC,
     GET_FREE_PERC,
     GET_LOGDIR,
-    SET_LOGDIR
+    SET_LOGDIR,
+    NB_MSG_TYPES
 };
 
 enum Request {
@@ -471,7 +472,7 @@ void send_ints(int fd, const int *data, int num);
 int *recv_ints(int fd, int *num);
 
 /* msgdump.c */
-void msgdump(FILE *, const struct Msg *m);
+void msgdump(FILE *, const struct Msg *m, const char prefix);
 
 /* error.c */
 void error_msg(const struct Msg *m, const char *str, ...);

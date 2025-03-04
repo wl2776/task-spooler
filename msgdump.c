@@ -8,9 +8,13 @@
 #include <sys/time.h>
 #include "main.h"
 
-void msgdump(FILE *f, const struct Msg *m)
+void msgdump(FILE *f, const struct Msg *m, const char prefix)
 {
-    fprintf(f, "msgdump:\n");
+    fprintf(f, "msgdump (%c):\n", prefix);
+    if (m->type < KILL_SERVER || m->type >= NB_MSG_TYPES) {
+        fprintf(f, " Unknown message: %i\n", m->type);
+        return;
+    };
     switch(m->type)
     {
         case KILL_SERVER:
@@ -54,7 +58,14 @@ void msgdump(FILE *f, const struct Msg *m)
         case GET_LABEL:
             fprintf(f, "GET_LABEL\n");
             fprintf(f, " Jobid: %i\n", m->u.jobid);
+        case GET_VERSION:
+            fprintf(f, "GET_VERSION\n");
+            break;
+        case VERSION:
+            fprintf(f, "VERSION\n");
+            fprintf(f, " Version: %i\n", m->u.version);
+            break;
         default:
-            fprintf(f, " Unknown message: %i\n", m->type);
+            fprintf(f, " Message type: %i\n", m->type);
     }
 }
