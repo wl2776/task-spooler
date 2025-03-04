@@ -73,8 +73,8 @@ char *jobgpulist_header() {
     return "ID   GPU-IDs\n";
 }
 
-static int max(int a, int b) {
-    return a > b ? a : b;
+static int min(int a, int b) {
+    return a < b ? a : b;
 }
 
 static const char *ofilename_shown(const struct Job *p) {
@@ -137,7 +137,7 @@ static char *print_noresult(const struct Job *p) {
     if (line == NULL)
         error("Malloc for %i failed.\n", maxlen);
 
-    cmd_len = max((strlen(p->command) + (term_width - maxlen)), 20);
+    cmd_len = min(term_width - 59, maxlen); //59 is the length of the header
     if (p->label) {
         char *label = shorten(p->label, 20);
         char *cmd = shorten(p->command, cmd_len);
@@ -234,7 +234,7 @@ static char *print_result(const struct Job *p) {
     if (line == NULL)
         error("Malloc for %i failed.\n", maxlen);
 
-    cmd_len = max((strlen(p->command) + (term_width - maxlen)), 20);
+    cmd_len = min(term_width - 59, maxlen);
     if (p->label) {
         char *label = shorten(p->label, 20);
         char *cmd = shorten(p->command, cmd_len);
