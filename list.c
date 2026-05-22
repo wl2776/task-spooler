@@ -137,7 +137,8 @@ static char *print_noresult(const struct Job *p) {
     if (line == NULL)
         error("Malloc for %i failed.\n", maxlen);
 
-    cmd_len = min(term_width - 59, maxlen); //59 is the length of the header
+    cmd_len = min(term_width - 40, maxlen);
+    cmd_len = cmd_len < 50 ? 50 : cmd_len;
     if (p->label) {
         char *label = shorten(p->label, 20);
         char *cmd = shorten(p->command, cmd_len);
@@ -234,7 +235,8 @@ static char *print_result(const struct Job *p) {
     if (line == NULL)
         error("Malloc for %i failed.\n", maxlen);
 
-    cmd_len = min(term_width - 59, maxlen);
+    cmd_len = min(term_width - 40, maxlen);
+    cmd_len = cmd_len < 50 ? 50 : cmd_len;    
     if (p->label) {
         char *label = shorten(p->label, 20);
         char *cmd = shorten(p->command, cmd_len);
