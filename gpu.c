@@ -3,6 +3,7 @@
 //
 
 #include <stdlib.h>
+#include <limits.h>
 #include <nvml.h>
 #include <string.h>
 
@@ -47,14 +48,48 @@ void initGPU() {
             error("Failed to shutdown NVML: %s", nvmlErrorString(result));
 }
 
+static int fill_csv_ints(const char *str, int *array, int max_count) {
+    if (!str || *str == '\0' || !array || max_count == 0)
+        return 0;
+
+    char *temp = strdup(str);
+    if (!temp) {
+        error("Cannot strdup");
+        return 0;
+    }
+
+    int count = 0;
+    char *token = strtok(temp, ",");
+    while (token != NULL && count < max_count) {
+        char *endptr;
+        long val = strtol(token, &endptr, 10);
+
+        if (endptr == token || *endptr != '\0') {
+            free(temp);
+            error("Invalid number in list: '%s'", token);
+        }
+        if (val < 0 || val >= INT_MAX) {
+            free(temp);
+            error("Number out of range: '%s'", token);
+        }
+
+        array[count++] = (int)val;
+    }
+
+    free(temp);
+    return count;
+}
+
 static int getVisibleGpus(int *visibility) {
     const char* tmp = getenv(TS_VISIBLE_DEVICES);
 
     if (tmp) {
         char* visFlag = malloc(strlen(tmp) + 1);
         strcpy(visFlag, tmp);
-        int num = strtok_int(visFlag, ",", visibility);
+
+        int num = fill_csv_ints(visFlag, visibility, num_total_gpus);
         free(visFlag);
+
         return num;
     }
 

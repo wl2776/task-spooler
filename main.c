@@ -14,6 +14,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <time.h>
+#include <limits.h>
 
 #include "version.h"
 #include "main.h"
@@ -101,14 +102,59 @@ static int get_two_jobs(const char *str, int *j1, int *j2) {
     return 1;
 }
 
-int strtok_int(char* str, char* delim, int* ids) {
-    int count = 0;
-    char *ptr = strtok(str, delim);
-    while(ptr != NULL) {
-        ids[count++] = atoi(ptr);
-        ptr = strtok(NULL, delim);
+static int count_csv_ints(const char *str) {
+    if (!str || *str == '\0') return 0;
+
+    int count = 1;  // one number, minimum
+    for (const char *p = str; *p; ++p) {
+        if (*p == ',') ++count;
     }
     return count;
+}
+
+int parse_csv_ints(const char *str, int **out_array) {
+    if (!str || *str == '\0') {
+        *out_array = NULL;
+        return 0;
+    }
+
+    int count = count_csv_ints(str);
+    int *array = malloc(count * sizeof(int));
+    if (!array) {
+        error("Cannot allocate %d bytes\n", count * sizeof(int));
+        exit(1);
+    }
+
+    char *temp = strdup(str);
+    if (!temp) {
+        error("Cannot strdup");
+        free(array);
+        exit(1);
+    }
+
+    int parsed_count = 0;
+    char *token = strtok(temp, ",");
+    while (token != NULL) {
+        char *endptr;
+        long val = strtol(token, &endptr, 10);
+
+        // check for correct input
+        if (endptr == token || *endptr != '\0') {
+            error("Invalid number in list: '%s'. Only integers separated by commas are allowed.", token);
+        }
+
+        // check value range
+        if (val < 0 || val > INT_MAX) {
+            error("Number out of range in list: '%s'. Must be a valid positive integer.", token);
+        }
+
+        array[parsed_count++] = (int)val;
+        token = strtok(NULL, ",");        
+    }
+
+    free(temp);
+    *out_array = array;
+    return parsed_count;
 }
 
 static struct option longOptions[] = {
@@ -238,8 +284,7 @@ void parse_opts(int argc, char **argv) {
                     command_line.gpus = 1;
                 break;
             case 'g':
-                command_line.gpu_nums = (int*) malloc(strlen(optarg) * sizeof(int));
-                command_line.gpus = strtok_int(optarg, ",", command_line.gpu_nums);
+                command_line.gpus = parse_csv_ints(optarg, &command_line.gpu_nums);
                 command_line.wait_free_gpus = 0;
                 break;
 #endif
@@ -296,12 +341,10 @@ void parse_opts(int argc, char **argv) {
                 }
                 break;
             case 'D':
-                command_line.depend_on = (int*) malloc(strlen(optarg) * sizeof(int));
-                command_line.depend_on_size = strtok_int(optarg, ",", command_line.depend_on);
+                command_line.depend_on_size = parse_csv_ints(optarg, &command_line.depend_on);
                 break;
             case 'W':
-                command_line.depend_on = (int*) malloc(strlen(optarg) * sizeof(int));
-                command_line.depend_on_size = strtok_int(optarg, ",", command_line.depend_on);
+                command_line.depend_on_size = parse_csv_ints(optarg, &command_line.depend_on);
                 command_line.require_elevel = 1;
                 break;
             case 'U':
@@ -769,6 +812,7 @@ int main(int argc, char **argv) {
     }
     free(command_line.gpu_nums);
     free(command_line.logfile);
+    free(command_line.depend_on);
 
     return errorlevel;
 }
