@@ -282,6 +282,10 @@ void parse_opts(int argc, char **argv) {
                     command_line.gpus = atoi(optarg);
                 else
                     command_line.gpus = 1;
+                if (command_line.gpus < 0) {
+                    error("Wrong number of GPUs: %d\n", command_line.gpus);
+                    exit(-1);
+                }
                 break;
             case 'g':
                 command_line.gpus = parse_csv_ints(optarg, &command_line.gpu_nums);
